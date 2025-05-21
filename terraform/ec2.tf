@@ -1,5 +1,5 @@
 data "aws_ami" "os_image" {
-  owners = ["099720109477"]
+  owners = [var.ami_owner]
   most_recent = true
   filter {
     name   = "state"
@@ -7,13 +7,13 @@ data "aws_ami" "os_image" {
   }
   filter {
     name = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/*24.04-amd64*"]
+    values = [var.ami_name_pattern]
   }
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "terra-automate-key"
-  public_key = file("terra-key.pub")
+  key_name   = "terra-ansible-multienv-key"
+  public_key = file("terra-ansible-multienv-key.pub")
 }
 
 resource "aws_default_vpc" "default" {
@@ -21,7 +21,7 @@ resource "aws_default_vpc" "default" {
 }
 
 resource "aws_security_group" "allow_user_to_connect" {
-  name        = "allow TLS"
+  name        = "allow TLS_${local.name}"
   description = "Allow user to connect"
   vpc_id      = aws_default_vpc.default.id
   ingress {
@@ -63,6 +63,15 @@ resource "aws_security_group" "allow_user_to_connect" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  ingress {
+  description = "Allow ports 4000-5000"
+  from_port   = 4000
+  to_port     = 5000
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
 
   tags = {
     Name = "mysecurity"

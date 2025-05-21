@@ -1,0 +1,41 @@
+# ---------------------------------
+# 🔨 Stage 1: Build / Install
+# ---------------------------------
+    FROM node:18-alpine AS builder
+
+    # Set working directory
+    WORKDIR /app
+    
+    # Install build dependencies
+    RUN apk add --no-cache python3 make g++
+    
+    # Copy package files and tsconfig
+    COPY package*.json tsconfig.json ./
+    
+    # Copy scripts and database directory
+    COPY scripts ./scripts
+    COPY .db ./.db
+    
+    # Install dependencies
+    RUN npm install
+    RUN npm install --save-dev @types/mongoose
+    
+    # ----------------------------------------
+    # 🏃 Stage 2: Run the migration script
+    # ----------------------------------------
+    FROM node:18-alpine AS runner
+    
+    # Set working directory
+    WORKDIR /app
+    
+    # Copy only the necessary files from builder
+    COPY --from=builder /app/scripts ./scripts
+    COPY --from=builder /app/.db ./.db
+    COPY --from=builder /app/tsconfig.json ./tsconfig.json
+    
+    # Set environment variable
+    ENV NODE_ENV=development
+    
+    # Run the migration script
+    CMD ["npx", "ts-node", "--project", "scripts/tsconfig.json", "scripts/migrate-data.ts"]
+    

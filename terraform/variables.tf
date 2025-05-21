@@ -17,3 +17,15 @@ variable "my_enviroment" {
   description = "Instance type for the EC2 instance"
   default     = "dev"
 }
+
+variable "ami_owner" {
+  description = "The AWS account ID of the AMI owner (Canonical for Ubuntu)"
+  type        = string
+  default     = "099720109477"
+}
+
+variable "ami_name_pattern" {
+  description = "The AMI name pattern for Ubuntu 24.04"
+  type        = string
+  default     = "ubuntu/images/hvm-ssd-gp3/*24.04-amd64*"
+}
